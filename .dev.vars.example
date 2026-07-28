@@ -1,0 +1,20 @@
+# Copy to .dev.vars and fill in. Never commit .dev.vars.
+# SESSION_SECRET signs browser sessions. Use a long random string.
+SESSION_SECRET=
+
+# Google OAuth is the recommended sign-in path. Leave both blank to fall back
+# to the legacy shared-password flow (APP_PASSWORD). When both are set, the
+# login page shows the Google button.
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# OWNER_EMAILS=owner@example.com
+# AUTH_URL=https://your-deployment.example   # required when running behind a tunnel
+
+# Legacy shared-password fallback. Keep set if you want the password form
+# available as a developer-mode option.
+APP_PASSWORD=
+
+# Optional two-way Google Sheets bridge. Generate one high-entropy value and
+# enter the same value when scripts/google-apps-script-bridge.gs prompts for it.
+GOOGLE_SHEETS_APP_URL=
+GOOGLE_SHEETS_SYNC_SECRET=

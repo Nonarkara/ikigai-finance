@@ -1,0 +1,33 @@
+{
+  "name": "ikigai-finance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node --test src/lib/auth.test.js src/lib/owners.test.js src/lib/receipt.test.js src/lib/referenceProfile.test.js src/lib/finance/diagnostic.test.js src/lib/finance/snapshot.test.js src/lib/finance/sheetsBridge.test.js",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "audit:boundary": "node scripts/audit-public-boundary.mjs"
+  },
+  "dependencies": {
+    "next": "^16.2.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.2",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.12",
+    "wrangler": "^4.114.0"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.8",
+    "minimatch": "^10.2.5",
+    "postcss": "^8.5.15",
+    "sharp": "^0.35.2"
+  }
+}
