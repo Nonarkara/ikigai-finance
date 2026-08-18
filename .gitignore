@@ -35,6 +35,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local secrets — Cloudflare / wrangler dev vars. The .example template is
+# tracked; the real file (SESSION_SECRET, OAuth secrets, APP_PASSWORD) is not.
+.dev.vars
+!.dev.vars.example
+
 # vercel
 .vercel
 

@@ -7,7 +7,7 @@
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   "ai": { "binding": "AI" },
   "d1_databases": [
-    { "binding": "DB", "database_name": "replace-me-database", "database_id": "00000000-0000-0000-0000-000000000000" }
+    { "binding": "DB", "database_name": "ikigai-finance", "database_id": "00000000-0000-0000-0000-000000000000" }
   ],
   "r2_buckets": [
     { "binding": "EVIDENCE_BUCKET", "bucket_name": "replace-me-evidence" },

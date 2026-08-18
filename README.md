@@ -1,8 +1,12 @@
-# Ikigai Finance Community
+# Ikigai Finance
 
-A small, open-source financial evidence inbox for founders and small teams. Send a receipt, invoice, boarding pass, itinerary, or claim document to Telegram; the app stores the original privately, extracts structured fields, and waits for a human to approve or reject the proposal.
+A small, open-source financial cockpit for one company — founders and small teams. Send a receipt, invoice, boarding pass, itinerary, or claim document to Telegram; the app stores the original privately, extracts structured fields, and waits for a human to approve or reject the proposal. It also holds an evidence-first balance-sheet and income-statement diagnostic for the company you run.
 
 This is a focused vertical slice, not a general ledger or bank-reconciliation system.
+
+**Setting it up for a business?** Follow the tiered, copy-pasteable
+[agent setup playbook](docs/AGENT-SETUP.md) — Tier 0 gets a real, persistent
+dashboard running entirely on your own machine with **no cloud account**.
 
 ## What works
 
@@ -63,7 +67,26 @@ Set `SESSION_SECRET` and either `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` + `O
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Without Cloudflare bindings, the browser shows clearly labeled synthetic evidence. Nothing is uploaded.
+Open [http://localhost:3000](http://localhost:3000). This fast mode shows clearly labeled synthetic evidence and **persists nothing** — it is for UI work.
+
+### Run locally with a real database (no Cloudflare account)
+
+To actually use the dashboard for your company — saving your real balance
+sheet, income statement, and workspace to a **local SQLite database** on your
+own disk, fully offline — create the local database once and run the
+persistent app:
+
+```bash
+npm run db:local       # applies the schema to a local SQLite file under .wrangler/state
+npm run start:local    # builds and runs the app on the local database, offline
+```
+
+Open [http://localhost:3000](http://localhost:3000), sign in with
+`APP_PASSWORD`, and edit **Workspace**. Saves persist across restarts. Nothing
+leaves the machine and no online account is required. Reset anytime with
+`rm -rf .wrangler/state && npm run db:local`. The full walkthrough, including
+optional Google sign-in, Telegram receipt intake, and deployment, is in the
+[agent setup playbook](docs/AGENT-SETUP.md).
 
 ## Connect one Google Sheet
 
