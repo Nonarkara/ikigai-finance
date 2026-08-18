@@ -1,8 +1,8 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { join, relative } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { relative } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
-const ignored = new Set(['.git', '.next', '.open-next', '.worktrees', 'node_modules']);
 const forbidden = [
   new RegExp(['ax', 'iom', '[ _-]?x'].join(''), 'i'),
   new RegExp(['tenant_', 'ikigai'].join(''), 'i'),
@@ -14,22 +14,28 @@ const forbidden = [
   /gh[opsu]_[A-Za-z0-9]{30,}/,
 ];
 
-async function files(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const result = [];
-  for (const entry of entries) {
-    if (ignored.has(entry.name)) continue;
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...await files(path));
-    else result.push(path);
+// Audit exactly the files git can publish: tracked plus untracked-not-ignored.
+// A gitignored file (.dev.vars, .wrangler/) can never reach the public repo, so
+// flagging a maintainer's real .dev.vars would be a false positive; a file that
+// is force-added becomes tracked and is included again. Falls back to a plain
+// tree walk if git is unavailable.
+function files() {
+  try {
+    const out = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
+      cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
+    });
+    return out.split('\0').filter(Boolean);
+  } catch {
+    console.error('Public boundary audit requires git to determine the publishable file set.');
+    process.exit(1);
   }
-  return result;
 }
 
 const failures = [];
-for (const path of await files(root)) {
+for (const path of files()) {
   if (/\.(?:ico|png|jpe?g|gif|webp|woff2?|lock)$/i.test(path)) continue;
-  const content = await readFile(path, 'utf8');
+  let content;
+  try { content = await readFile(path, 'utf8'); } catch { continue; }
   for (const pattern of forbidden) {
     if (pattern.test(content)) failures.push(`${relative(root, path)} matched ${pattern}`);
   }
