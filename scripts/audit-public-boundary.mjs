@@ -3,8 +3,12 @@ import { relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const root = process.cwd();
+// Public legal attribution (LICENSE / README) may name the studio.
+// Everywhere else the historical private-name and live-host patterns stay closed.
+const attributionFiles = new Set(['LICENSE', 'README.md']);
+const studioName = new RegExp(['ax', 'iom', '[ _-]?x'].join(''), 'i');
 const forbidden = [
-  new RegExp(['ax', 'iom', '[ _-]?x'].join(''), 'i'),
+  studioName,
   new RegExp(['tenant_', 'ikigai'].join(''), 'i'),
   new RegExp(['axi', 'om_story'].join(''), 'i'),
   new RegExp(['ikigai', '\\.nonarkara\\.org'].join(''), 'i'),
@@ -37,6 +41,7 @@ for (const path of files()) {
   let content;
   try { content = await readFile(path, 'utf8'); } catch { continue; }
   for (const pattern of forbidden) {
+    if (attributionFiles.has(path) && pattern === studioName) continue;
     if (pattern.test(content)) failures.push(`${relative(root, path)} matched ${pattern}`);
   }
 }
