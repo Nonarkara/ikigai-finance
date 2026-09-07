@@ -1,58 +1,74 @@
+![A late-night Bangkok desk: paper receipts, a blank ledger, one laptop, and a sleeping cat — no dashboard overlay.](docs/hero.png)
+
+*หนึ่งโต๊ะ หลักฐานก่อนสรุป · One desk. Evidence before any conclusion. Hand-drawn studio still; no HUD on the image.*
+
 # Ikigai Finance
 
-A small, open-source financial cockpit for one company — founders and small teams. Send a receipt, invoice, boarding pass, itinerary, or claim document to Telegram; the app stores the original privately, extracts structured fields, and waits for a human to approve or reject the proposal. It also holds an evidence-first balance-sheet and income-statement diagnostic for the company you run.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js 22+](https://img.shields.io/badge/node-22+-339933.svg)](package.json)
+[![CI](https://github.com/Nonarkara/ikigai-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/Nonarkara/ikigai-finance/actions/workflows/ci.yml)
 
-This is a focused vertical slice, not a general ledger or bank-reconciliation system.
+**Personal / company finance tooling — not financial advice.**
 
-**Setting it up for a business?** Follow the tiered, copy-pasteable
-[agent setup playbook](docs/AGENT-SETUP.md) — Tier 0 gets a real, persistent
-dashboard running entirely on your own machine with **no cloud account**.
+[What this is](#what-this-is) · [Philosophy](#philosophy) · [Ethical use](#ethical-use) · [How to use / learn](#how-to-use--learn) · [System diagram](#system-diagram) · [License](#license--contributing) · [Setup playbook](docs/AGENT-SETUP.md) · [Security](SECURITY.md)
 
-## What works
+A small, open-source **single-company** financial cockpit. One workspace (your company), any number of read-only reference profiles. MIT licensed. It runs fully locally with no cloud account, and optionally deploys to Cloudflare.
 
-- Google OAuth sign-in (recommended) with a deployment-configured owner allowlist
-- Password-protected fallback for local development without Google credentials
-- Synthetic local data immediately after clone
-- Telegram sender pairing with a one-time setup code
-- Signed Telegram webhook verification
-- Image and PDF ingestion up to 20 MB
-- Cloudflare Workers AI extraction
-- Private R2 original-file storage
-- SHA-256 evidence provenance
-- D1 review state and duplicate-update protection
-- Human approve/reject workflow
-- Evidence-first balance-sheet and income-statement diagnostic
-- Formula lineage, input completeness, and balance-equation verification
-- Editable and lockable single-company financial model
-- Authenticated two-way Google Sheets sync with revision conflict protection
-- Workspace (your company) edit-in-place
-- Reference profiles for competitors, clients, partners, and prospects with a moves timeline
-- Responsive desktop and mobile UI
-- Tests, lint, build, CI, and public-boundary scan
+Author: [Non Arkaraprasertkul](https://github.com/Nonarkara) (Nonarkara), [Axiom X Co., Ltd.](https://github.com/Nonarkara). Written for a bilingual Thai–English audience. The interface in this tree is English.
 
-## Trust model
+---
 
-`original evidence → OCR proposal → human review → approved evidence`
+## What this is
 
-OCR never approves itself. An approved receipt still is not a reconciled bank transaction. If you need accounting-grade cash, add a bank import and month-close workflow before deriving authoritative balances.
+Ikigai Finance is a focused vertical slice — **not** a general ledger, **not** a bank, and **not** a multi-tenant product.
 
-The financial model follows a second invariant:
+What is actually in this repository:
 
-```text
-total assets = total liabilities + total equity
-```
+- A review-first **evidence inbox**. Send a receipt, invoice, boarding pass, itinerary, or claim document to Telegram (optional, needs a deploy). The app stores the original privately, extracts structured fields, and waits for a human to approve or reject the proposal.
+- An **evidence-first diagnostic** for one company's balance sheet and income statement: formula lineage, input completeness, and a hard balance-equation check.
+- An editable, lockable **single-company financial model**, with an optional two-way Google Sheets mirror.
+- One **workspace** (your company) plus read-only **reference profiles** (competitor, client, partner, prospect) and a moves timeline.
+- Two local modes: a fast `npm run dev` UI with clearly labeled synthetic data, and `npm run start:local` with a real offline SQLite file under `.wrangler/state`.
+- Google OAuth with an `OWNER_EMAILS` allowlist, or an `APP_PASSWORD` fallback for local use. An empty allowlist fails closed.
+- Tests, lint, Next.js build, CI, and a public-boundary scan that keeps secrets and private paths out of this public repo.
 
-If the statement does not balance, the app blocks the conclusion. Missing
-numbers remain missing: it does not invent paid-in capital, assume a gross
-margin, cap an undefined ratio, or silently choose an Altman model.
+This is the method, on one machine. There is **no public live demo URL** in this repository.
 
-## Single-owner by design
+---
 
-The app is intentionally a single-company business OS, not a multi-tenant SaaS. There is one workspace (your company) and any number of read-only reference profiles. Each deployment supplies its own comma-separated `OWNER_EMAILS` allowlist; an empty list fails closed. Password sign-in is a developer-mode fallback for local development and clones that do not configure Google.
+## Philosophy
 
-## Run locally
+Studio tenets, applied to a finance desk:
 
-Requirements: Node.js 22+ and npm.
+**Fork the method, not the secrets.** The trust chain, the schema, and the diagnostic are public so you can learn them and run them for *your* company. Receipts, tokens, session secrets, Sheet bridges, and real figures stay on your disk (or in *your* Cloudflare account). Do not send them back as issues, screenshots, or pull requests.
+
+**One Mac.** The core cockpit — workspace, statements, diagnostic, reference profiles — runs on a single machine. Node.js 22+ and npm are enough. No Docker, no hosted database, no cloud account for Tier 0. Cloudflare (Workers AI, D1, R2, KV) is optional and only required for Telegram OCR intake and a public deploy.
+
+**No black-box rankings.** The app does not invent paid-in capital, assume a gross margin, cap an undefined ratio, or silently pick an Altman model. If a statement does not balance, the diagnostic **blocks the conclusion**. Altman Z′ / Z″ appears only when the caller explicitly chooses the matching private manufacturing or non-manufacturing model. Missing numbers stay missing.
+
+**Thai–English as the audience.** This studio writes for learners and operators who move between Thai and English. The code and UI in this tree are English; currency parsing accepts `฿` among other symbols. A bilingual voice in the docs is not a claim that the product is localized.
+
+This is **personal tooling for one company**, built the way the rest of the civic studio is built: evidence before conclusion, and a blank where the input is blank. It is not a score, not a ranking of firms, and not advice to raise, lend, or invest.
+
+---
+
+## Ethical use
+
+- **Not advice.** Numbers you type or approve are yours. The diagnostic screens financial *condition*; it does not value a company or recommend a deal.
+- **OCR never approves itself.** The trust chain is `original evidence → OCR proposal → human review → approved evidence`. An approved receipt is still not a reconciled bank transaction.
+- **Do not commit real evidence.** `.dev.vars`, `.wrangler/`, and real company data are gitignored. Issues and PRs must use synthetic fixtures only. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+- **Single-owner by design.** One company edits in place. There is no tenant switcher and no way to widen `OWNER_EMAILS` at runtime. Do not pretend otherwise.
+- **Fail closed.** An empty owner allowlist admits no one. Runtime credentials belong in ignored `.dev.vars` or Cloudflare secrets — never in git.
+- **Originals stay private.** Files are not public bucket URLs. They stream through a session-protected route with `private, no-store`.
+- **Your jurisdiction is yours.** Tax, employment, insurance, and accounting obligations are not certified by this software.
+
+If you need accounting-grade cash, add a bank import and a month-close workflow before treating dashboard totals as authoritative. Those steps are on the roadmap; they are not in the tree today.
+
+---
+
+## How to use / learn
+
+Requirements: **Node.js 22+** and npm.
 
 ```bash
 git clone https://github.com/Nonarkara/ikigai-finance.git
@@ -61,61 +77,30 @@ npm install
 cp .dev.vars.example .dev.vars
 ```
 
-Set `SESSION_SECRET` and either `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` + `OWNER_EMAILS` (recommended) or `APP_PASSWORD` (developer fallback):
+Set `SESSION_SECRET` (long random) and `APP_PASSWORD` in `.dev.vars`. Leave Google / Telegram / Sheets blank for the first run.
+
+### Fast UI (synthetic, persists nothing)
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). This fast mode shows clearly labeled synthetic evidence and **persists nothing** — it is for UI work.
+Open [http://localhost:3000](http://localhost:3000). The dashboard labels this mode **synthetic**. Use it to read the UI, not to store a real company.
 
-### Run locally with a real database (no Cloudflare account)
-
-To actually use the dashboard for your company — saving your real balance
-sheet, income statement, and workspace to a **local SQLite database** on your
-own disk, fully offline — create the local database once and run the
-persistent app:
+### Persistent local cockpit (no cloud account)
 
 ```bash
-npm run db:local       # applies the schema to a local SQLite file under .wrangler/state
-npm run start:local    # builds and runs the app on the local database, offline
+npm run db:local        # schema → local SQLite under .wrangler/state
+npm run start:local     # build + run against that file, offline
 ```
 
-Open [http://localhost:3000](http://localhost:3000), sign in with
-`APP_PASSWORD`, and edit **Workspace**. Saves persist across restarts. Nothing
-leaves the machine and no online account is required. Reset anytime with
-`rm -rf .wrangler/state && npm run db:local`. The full walkthrough, including
-optional Google sign-in, Telegram receipt intake, and deployment, is in the
-[agent setup playbook](docs/AGENT-SETUP.md).
+Sign in with `APP_PASSWORD`, edit **Workspace** and the statements. Saves survive restart. Reset with `rm -rf .wrangler/state && npm run db:local`.
 
-## Connect one Google Sheet
+The full tiered playbook — Google sign-in, Telegram intake, Sheets mirror, Cloudflare deploy — is in **[docs/AGENT-SETUP.md](docs/AGENT-SETUP.md)**. Do the tiers in order; stop when you have what you need.
 
-The Sheet is an optional editable mirror of the single company. A Sheet link by
-itself cannot grant secure access, so the repository includes a bound Apps
-Script bridge:
+### Read a diagnostic (optional)
 
-1. Create or open the company workbook.
-2. Open **Extensions → Apps Script** and paste
-   [`scripts/google-apps-script-bridge.gs`](scripts/google-apps-script-bridge.gs).
-3. Run `setupIkigaiFinance()` once. Enter the deployed dashboard URL and a
-   random sync secret of at least 24 characters.
-4. Deploy the script as a web app that executes as you. Copy its `/exec` URL.
-5. Set `GOOGLE_SHEETS_APP_URL` to that URL and
-   `GOOGLE_SHEETS_SYNC_SECRET` to the same secret in `.dev.vars` or Cloudflare
-   secrets.
-
-The setup function creates canonical Company Profile, Balance Sheet, and Income
-Statement tabs and installs an authorized edit trigger plus a ten-minute
-fallback trigger. Dashboard saves push back to the Sheet. Sheet edits push to
-`/api/sheets/sync`. Revision checks reject stale writes, and locking the model
-blocks both dashboard and Sheet edits until the owner unlocks it.
-
-The web app has no `doGet` data export. Every incoming write must carry the
-shared secret. Keep the deployment URL and secret private.
-
-## Financial diagnostic
-
-Paste the basic statement into the dashboard or call:
+Paste a basic statement into the dashboard, or call the evaluate route against a local server. The response separates what the balance sheet can prove from what still needs income, cash-flow, market, governance, and deal-term evidence.
 
 ```bash
 curl --request POST http://localhost:3000/api/finance/evaluate \
@@ -133,119 +118,38 @@ curl --request POST http://localhost:3000/api/finance/evaluate \
   }'
 ```
 
-The response separates what the balance sheet can prove from what still needs
-income, cash-flow, market, governance, and deal-term evidence. Altman Z′ or Z″
-is calculated only when the caller explicitly chooses the matching private
-manufacturing or non-manufacturing model.
-
-## Configure Cloudflare
-
-Create the resources:
-
-```bash
-npx wrangler d1 create ikigai-finance
-npx wrangler r2 bucket create ikigai-finance-evidence
-npx wrangler r2 bucket create ikigai-finance-cache
-npx wrangler kv namespace create PAIRING_KV
-```
-
-Put the returned IDs and names into `wrangler.jsonc`, replacing every `replace-me-*` name and all-zero ID, then apply the schema:
-
-```bash
-npx wrangler d1 migrations apply ikigai-finance --remote
-```
-
-Create high-entropy secrets:
-
-```bash
-npx wrangler secret put SESSION_SECRET
-npx wrangler secret put GOOGLE_CLIENT_ID
-npx wrangler secret put GOOGLE_CLIENT_SECRET
-npx wrangler secret put OWNER_EMAILS
-npx wrangler secret put APP_PASSWORD            # optional, fallback sign-in
-npx wrangler secret put TELEGRAM_BOT_TOKEN
-npx wrangler secret put TELEGRAM_WEBHOOK_SECRET
-npx wrangler secret put TELEGRAM_SETUP_CODE
-npx wrangler secret put GOOGLE_SHEETS_APP_URL       # optional
-npx wrangler secret put GOOGLE_SHEETS_SYNC_SECRET   # optional
-```
-
-When deploying behind a tunnel or alternate host, also set:
-
-```bash
-npx wrangler secret put AUTH_URL               # e.g. https://your-domain.example
-```
-
-Deploy:
-
-```bash
-npm run deploy
-```
-
-## Configure Telegram
-
-Create a bot with BotFather. After deployment, register the webhook using the same random value stored as `TELEGRAM_WEBHOOK_SECRET`:
-
-```bash
-curl --request POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
-  --data-urlencode "url=https://YOUR_DOMAIN/api/telegram" \
-  --data-urlencode "secret_token=$TELEGRAM_WEBHOOK_SECRET" \
-  --data-urlencode 'allowed_updates=["message"]'
-```
-
-In Telegram, pair the first authorized sender:
-
-```text
-/start YOUR_TELEGRAM_SETUP_CODE
-```
-
-The paired chat/user is stored in KV. Unknown senders cannot submit evidence. To reset pairing:
-
-```bash
-npx wrangler kv key delete --binding PAIRING_KV paired_sender --remote
-```
-
-## Extracted fields
-
-Image OCR proposes raw text, document type, vendor, date, currency, subtotal, tax, total, invoice number, booking reference, passenger, flight, route, claim category, line items, confidence, and warnings. PDF conversion preserves extracted text and deliberately starts at medium confidence for human review.
-
-## Verify a change
+### Verify a change
 
 ```bash
 npm test
 npm run lint
 npm run build
 npm run audit:boundary
-npm audit
 ```
 
-## Architecture
+`audit:boundary` is the guard that keeps private paths, secrets, and real customer data out of this public repository.
 
-- Next.js 16 / React 19
-- Cloudflare Workers through OpenNext
-- D1 for evidence metadata, workspace, and reference profiles
-- D1 revisioned financial snapshot and sync audit events
-- R2 for private originals
-- KV for Telegram pairing
-- Workers AI for OCR and PDF-to-Markdown
+---
 
-The project intentionally retains edge `middleware.js`: Next 16's new `proxy.js` is Node-runtime only, and the current OpenNext Cloudflare adapter does not support Node middleware yet.
+## System diagram
 
-The app is intentionally single-workspace. There is one operating company and any number of read-only reference profiles (competitors, clients, partners, prospects). Reference profiles do not own their own data, OAuth credentials, or finance ledger; they exist so the cockpit has a stable comparison surface. Multi-company support requires tenant-scoped keys, memberships, connection ownership, and an explicit authorization policy; do not simulate it by adding a tenant dropdown alone.
+```mermaid
+flowchart TB
+  E[Evidence] --> O[OCR proposal]
+  O --> H[Human review]
+  H --> A[Approved]
+  S[Statements] --> D[Diagnostic]
+  D --> G{A = L + E?}
+  G -->|yes| R[Ratios]
+  G -->|no| X[Blocked]
+```
 
-## Security and privacy
+Stack actually in the tree: Next.js 16 / React 19 on Cloudflare Workers via OpenNext; D1 (local SQLite) for evidence metadata, workspace, reference profiles, and the revisioned financial snapshot; R2 for private originals; KV for Telegram pairing; Workers AI for OCR and PDF-to-Markdown. Edge `middleware.js` is retained because Next 16's `proxy.js` is Node-runtime only and the current OpenNext Cloudflare adapter does not support Node middleware yet.
 
-Original files are never public bucket URLs. They stream through a session-protected route with `private, no-store`. Runtime credentials belong in Cloudflare secrets or ignored `.dev.vars` files.
+---
 
-See [SECURITY.md](SECURITY.md) before operating with real evidence.
+## License / contributing
 
-## Roadmap
+MIT. Copyright © 2026 [Non Arkaraprasertkul](https://github.com/Nonarkara) / Axiom X Co., Ltd. See [LICENSE](LICENSE).
 
-1. Editable extracted fields and an audit event for every correction.
-2. Bank CSV import, matching, and month close.
-3. Retention rules and evidence export bundles.
-4. End-to-end browser and deployed-binding tests.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+Keep changes narrow, evidence-backed, and testable. Open an issue that states the user problem and the trust impact. Never attach real receipts, credentials, or private company records. OCR output must remain a proposal — contributions that silently auto-approve financial evidence will not be accepted. Details: [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities privately through GitHub's security-advisory flow ([SECURITY.md](SECURITY.md)).
