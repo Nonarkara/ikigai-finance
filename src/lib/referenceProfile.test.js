@@ -11,10 +11,10 @@ import {
 
 const base = {
   type: 'competitor',
-  name: 'EDA',
-  descriptor: 'Bangkok analytics platform',
+  name: 'Synthetic Analytics Co.',
+  descriptor: 'Fictional analytics platform',
   sector: 'analytics',
-  city: 'Bangkok',
+  city: 'Sample City',
   headcount_band: '51-200',
   revenue_band: '$1M-$10M',
   stage: 'growth',
@@ -29,7 +29,7 @@ test('validateProfile accepts a full competitor profile and clears contact field
     contact_email: 'should@be.cleared',
   });
   assert.equal(errors.length, 0);
-  assert.equal(profile.name, 'EDA');
+  assert.equal(profile.name, 'Synthetic Analytics Co.');
   assert.equal(profile.contact_name, '');
   assert.equal(profile.contact_email, '');
   assert.deepEqual(profile.tags, ['analytics', 'mid-market']);
@@ -44,13 +44,13 @@ test('validateProfile rejects missing name and bad type', () => {
 test('validateProfile accepts a client with contact fields', () => {
   const { profile, errors } = validateProfile({
     type: 'client',
-    name: 'Praram 9',
-    contact_name: 'Khun A',
-    contact_email: 'a@praram9.example',
-    contact_role: 'CIO',
+    name: 'Synthetic Clinic Co.',
+    contact_name: 'Sample Contact',
+    contact_email: 'a@synthetic-clinic.example',
+    contact_role: 'Operator',
   });
   assert.equal(errors.length, 0);
-  assert.equal(profile.contact_email, 'a@praram9.example');
+  assert.equal(profile.contact_email, 'a@synthetic-clinic.example');
 });
 
 test('validateProfile rejects an invalid contact email', () => {

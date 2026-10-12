@@ -6,7 +6,16 @@ import WorkspaceCard from './WorkspaceCard';
 import ReferenceProfiles from './ReferenceProfiles';
 
 function money(value, currency) {
-  return new Intl.NumberFormat('en', { style: 'currency', currency: currency || 'USD' }).format(value || 0);
+  if (value === null || value === undefined || value === '') return '—';
+  const code = /^[A-Z]{3}$/.test(currency || '') ? currency : 'USD';
+  return new Intl.NumberFormat('en', { style: 'currency', currency: code }).format(value);
+}
+
+function modeLabel(mode) {
+  if (mode === 'synthetic') return 'SYNTHETIC LOCAL DATA';
+  if (mode === 'private') return 'PRIVATE LOCAL DATA';
+  if (mode === 'loading') return 'LOADING';
+  return String(mode || '').toUpperCase();
 }
 
 export default function Dashboard() {
@@ -30,7 +39,7 @@ export default function Dashboard() {
   }, []);
 
   async function review(id, status) {
-    if (data.mode === 'synthetic') {
+    if (data.mode !== 'live') {
       setData((current) => ({
         ...current,
         documents: current.documents.map((item) => item.id === id ? { ...item, status } : item),
@@ -57,7 +66,7 @@ export default function Dashboard() {
           <h1>Company cockpit</h1>
         </div>
         <div className="topbar-meta">
-          <span className={`mode mode--${data.mode}`}>{data.mode === 'synthetic' ? 'SYNTHETIC LOCAL DATA' : data.mode.toUpperCase()}</span>
+          <span className={`mode mode--${data.mode}`}>{modeLabel(data.mode)}</span>
           <a className="signout" href="/api/auth/logout">Sign out</a>
         </div>
       </header>
@@ -70,7 +79,7 @@ export default function Dashboard() {
         <article><span>Needs review</span><strong>{pending.length}</strong></article>
         <article><span>Approved evidence</span><strong>{approved.length}</strong></article>
         <article><span>Approved value</span><strong>{money(total, approved[0]?.currency)}</strong></article>
-        <article><span>Storage</span><strong>{data.mode === 'live' ? 'D1 + R2' : 'Demo'}</strong></article>
+        <article><span>Storage</span><strong>{data.mode === 'live' ? 'D1 + R2' : data.mode === 'private' ? 'Private directory' : 'Demo'}</strong></article>
       </section>
 
       <FinanceWorkspace />
@@ -80,6 +89,15 @@ export default function Dashboard() {
           <div><div className="eyebrow">01 · CAPTURE</div><h2>Documents</h2></div>
           <div className="telegram-hint">Send an image or PDF to your paired Telegram bot.</div>
         </div>
+        {data.mode === 'synthetic' && (
+          <p className="section-hint">Synthetic sample receipts from samples/synthetic. They are fictional.</p>
+        )}
+        {data.mode === 'private' && data.privateStatus && data.privateStatus !== 'loaded' && (
+          <p className="section-hint">Private data directory is set, but evidence.json is missing or unreadable. No sample receipts were substituted.</p>
+        )}
+        {data.mode === 'private' && data.privateStatus === 'loaded' && (
+          <p className="section-hint">Loaded from your private data directory. This is not the committed synthetic sample. Reviews here stay in the browser until you use the local database.</p>
+        )}
         <div className="document-list">
           {data.documents.length === 0 && (
             <p className="empty">No documents yet. Send a receipt, invoice, or boarding pass to the paired Telegram bot and it will appear here for review.</p>

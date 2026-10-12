@@ -1,4 +1,6 @@
 import { getBindings } from './cloudflare.js';
+import syntheticProfilesFile from '../../samples/synthetic/reference-profiles.json' with { type: 'json' };
+import { chooseLocalSource, privateDataDir, readPrivateJson } from './localData.js';
 
 export const PROFILE_TYPES = Object.freeze(['competitor', 'client', 'partner', 'prospect']);
 
@@ -95,47 +97,76 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-const DEMO_PROFILES = [
-  {
-    id: 'demo_eda', type: 'competitor', name: 'EDA', descriptor: 'Bangkok-based analytics platform, mid-market focus.',
-    sector: 'analytics', city: 'Bangkok', headcount_band: '51-200', revenue_band: '$1M-$10M', stage: 'growth',
-    why_we_track: 'Closest direct competitor in mid-market analytics; watch for product launches.',
-    tags: ['analytics', 'mid-market'], moves: [
-      { date: '2026-04-12', oneLiner: 'Launched new dashboard product.', sourceUrl: null },
-    ],
-    contact_name: '', contact_email: '', contact_role: '',
-    created_at: '2026-07-14T00:00:00.000Z', updated_at: '2026-07-14T00:00:00.000Z', demo: true,
-  },
-  {
-    id: 'demo_praram9', type: 'client', name: 'Praram 9 Hospital', descriptor: 'Private hospital chain in central Bangkok.',
-    sector: 'healthcare', city: 'Bangkok', headcount_band: '201-500', revenue_band: '$10M-$100M', stage: 'mature',
-    why_we_track: 'Active client pilot; quarterly review meetings.',
-    tags: ['healthcare', 'pilot'], moves: [
-      { date: '2026-05-02', oneLiner: 'Renewed pilot for 6 more months.', sourceUrl: null },
-    ],
-    contact_name: 'Khun Anchalee', contact_email: 'anchalee@praram9.example', contact_role: 'CIO',
-    created_at: '2026-07-14T00:00:00.000Z', updated_at: '2026-07-14T00:00:00.000Z', demo: true,
-  },
-];
+async function localProfiles() {
+  const dir = privateDataDir();
+  let read = { ok: false, reason: 'unset' };
+  if (dir) {
+    const file = await readPrivateJson('reference-profiles.json');
+    if (!file.ok) {
+      console.warn('[profiles] private file unavailable', file.reason);
+      read = file;
+    } else {
+      const list = Array.isArray(file.value?.profiles)
+        ? file.value.profiles
+        : (Array.isArray(file.value) ? file.value : null);
+      if (!list) {
+        console.warn('[profiles] private file invalid');
+        read = { ok: false, reason: 'invalid' };
+      } else {
+        const accepted = [];
+        for (const item of list) {
+          if (!item || typeof item !== 'object') continue;
+          const { profile, errors } = validateProfile(item, { partial: false });
+          if (errors.length) continue;
+          accepted.push({
+            id: String(item?.id || `private_${accepted.length}`),
+            ...profile,
+            created_at: item?.created_at || '',
+            updated_at: item?.updated_at || '',
+            demo: false,
+          });
+        }
+        read = list.length > 0 && accepted.length === 0
+          ? { ok: false, reason: 'invalid' }
+          : { ok: true, value: accepted };
+      }
+    }
+  }
+  const chosen = chooseLocalSource(Boolean(dir), read, {
+    synthetic: syntheticProfilesFile.profiles.map((profile) => ({ ...profile, demo: true })),
+    blank: [],
+  });
+  return {
+    profiles: chosen.value,
+    mode: chosen.mode,
+    ...(chosen.privateStatus ? { privateStatus: chosen.privateStatus } : {}),
+  };
+}
 
 export async function listProfiles() {
   const { env } = await getBindings();
-  if (!env?.DB) return { profiles: DEMO_PROFILES, mode: 'synthetic' };
+  if (!env?.DB) return localProfiles();
   try {
     const { results } = await env.DB.prepare('SELECT * FROM reference_profiles ORDER BY updated_at DESC LIMIT 200').all();
     return { profiles: results || [], mode: 'live' };
-  } catch {
-    return { profiles: DEMO_PROFILES, mode: 'synthetic' };
+  } catch (error) {
+    console.warn('[profiles] falling back to local profiles', error?.message);
+    return localProfiles();
   }
 }
 
 export async function getProfile(id) {
   const { env } = await getBindings();
-  if (!env?.DB) return DEMO_PROFILES.find((p) => p.id === id) || null;
+  if (!env?.DB) {
+    const local = await localProfiles();
+    return local.profiles.find((profile) => profile.id === id) || null;
+  }
   try {
     return await env.DB.prepare('SELECT * FROM reference_profiles WHERE id = ?').bind(id).first();
-  } catch {
-    return DEMO_PROFILES.find((p) => p.id === id) || null;
+  } catch (error) {
+    console.warn('[profiles] falling back to local profile', error?.message);
+    const local = await localProfiles();
+    return local.profiles.find((profile) => profile.id === id) || null;
   }
 }
 

@@ -35,11 +35,24 @@ function files() {
   }
 }
 
+const realDataDir = /(?:^|\/)(?:private-data|screenshots|receipts|statements|exports)\//i;
+const spreadsheet = /\.(?:csv|tsv|xlsx|xls)$/i;
+
 const failures = [];
 for (const path of files()) {
+  const normalized = path.replaceAll('\\', '/');
+  if (realDataDir.test(normalized) || spreadsheet.test(normalized)) {
+    failures.push(`${normalized} is a real-data path. Keep statements, screenshots, and spreadsheets outside git.`);
+    continue;
+  }
   if (/\.(?:ico|png|jpe?g|gif|webp|woff2?|lock)$/i.test(path)) continue;
   let content;
   try { content = await readFile(path, 'utf8'); } catch { continue; }
+  if (normalized.startsWith('samples/synthetic/') && normalized.endsWith('.json')) {
+    if (!/"synthetic"\s*:\s*true/.test(content) || !/SYNTHETIC SAMPLE/.test(content)) {
+      failures.push(`${normalized} must set "synthetic": true and a SYNTHETIC SAMPLE label`);
+    }
+  }
   for (const pattern of forbidden) {
     if (attributionFiles.has(path) && pattern === studioName) continue;
     if (pattern.test(content)) failures.push(`${relative(root, path)} matched ${pattern}`);

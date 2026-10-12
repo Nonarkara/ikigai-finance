@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateBalanceSheetPayload } from './diagnostic.js';
 
+// Synthetic fixture. Round figures for a fictional company, used to check formulas.
 const HEALTHY = {
-  companyName: 'Apex Tech Co., Ltd.',
+  companyName: 'Synthetic Sample Co.',
   currency: 'THB',
   periodEnding: '2026-12-31',
   balanceSheet: {

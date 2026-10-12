@@ -1,0 +1,50 @@
+{
+  "label": "SYNTHETIC SAMPLE — fictional companies. Not real books.",
+  "synthetic": true,
+  "profiles": [
+    {
+      "id": "synthetic_competitor",
+      "type": "competitor",
+      "name": "Synthetic Analytics Co.",
+      "descriptor": "Fictional mid-market analytics firm used only as a UI sample.",
+      "sector": "analytics",
+      "city": "Sample City",
+      "headcount_band": "51-200",
+      "revenue_band": "$1M-$10M",
+      "stage": "growth",
+      "why_we_track": "Synthetic example of a competitor row.",
+      "tags": ["synthetic", "sample"],
+      "moves": [
+        { "date": "2026-04-12", "oneLiner": "Sample product launch. Not a real event.", "sourceUrl": null }
+      ],
+      "contact_name": "",
+      "contact_email": "",
+      "contact_role": "",
+      "created_at": "2026-07-14T00:00:00.000Z",
+      "updated_at": "2026-07-14T00:00:00.000Z",
+      "demo": true
+    },
+    {
+      "id": "synthetic_client",
+      "type": "client",
+      "name": "Synthetic Clinic Co.",
+      "descriptor": "Fictional clinic used only as a UI sample.",
+      "sector": "healthcare",
+      "city": "Sample City",
+      "headcount_band": "11-50",
+      "revenue_band": "$100K-$1M",
+      "stage": "seed",
+      "why_we_track": "Synthetic example of a client row.",
+      "tags": ["synthetic", "sample"],
+      "moves": [
+        { "date": "2026-05-02", "oneLiner": "Sample check-in. Not a real engagement.", "sourceUrl": null }
+      ],
+      "contact_name": "Sample Contact",
+      "contact_email": "contact@synthetic-clinic.example",
+      "contact_role": "Operator",
+      "created_at": "2026-07-14T00:00:00.000Z",
+      "updated_at": "2026-07-14T00:00:00.000Z",
+      "demo": true
+    }
+  ]
+}

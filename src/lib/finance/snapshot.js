@@ -1,5 +1,7 @@
 import { getBindings } from '../cloudflare.js';
 import { evaluateBalanceSheetPayload } from './diagnostic.js';
+import syntheticFinanceFile from '../../../samples/synthetic/finance-snapshot.json' with { type: 'json' };
+import { privateDataDir, readPrivateJson } from '../localData.js';
 
 const SINGLETON_ID = 'singleton';
 const ALTMAN_MODELS = new Set(['', 'private-manufacturing', 'private-non-manufacturing']);
@@ -25,37 +27,7 @@ const EMPTY_PAYLOAD = {
   incomeStatement: Object.fromEntries(INCOME_FIELDS.map((field) => [field, ''])),
 };
 
-const DEMO_PAYLOAD = {
-  ...EMPTY_PAYLOAD,
-  companyName: 'Sample Company',
-  periodEnding: '2026-06-30',
-  balanceSheet: {
-    ...EMPTY_PAYLOAD.balanceSheet,
-    cash: 120000,
-    accountsReceivable: 80000,
-    inventory: 50000,
-    totalCurrentAssets: 250000,
-    fixedAssets: 350000,
-    totalAssets: 600000,
-    accountsPayable: 70000,
-    shortTermDebt: 30000,
-    totalCurrentLiabilities: 100000,
-    longTermDebt: 100000,
-    totalLiabilities: 200000,
-    paidInCapital: 250000,
-    retainedEarnings: 150000,
-    equity: 400000,
-  },
-  incomeStatement: {
-    ...EMPTY_PAYLOAD.incomeStatement,
-    revenue: 900000,
-    grossProfit: 450000,
-    operatingExpenses: 300000,
-    operatingIncome: 150000,
-    interestExpense: 10000,
-    netProfit: 140000,
-  },
-};
+const DEMO_PAYLOAD = syntheticFinanceFile.payload;
 
 export class FinanceLockedError extends Error {}
 export class FinanceConflictError extends Error {}
@@ -112,18 +84,31 @@ function parseRow(row, demo = false) {
   };
 }
 
-function localSnapshot(payload = DEMO_PAYLOAD) {
+function localSnapshot(payload, { source, demo }) {
   const now = new Date().toISOString();
   return {
     id: SINGLETON_ID,
     payload,
     locked: false,
     revision: 1,
-    source: 'synthetic',
+    source,
     createdAt: now,
     updatedAt: now,
-    demo: true,
+    demo,
   };
+}
+
+async function loadLocalSnapshot() {
+  if (!privateDataDir()) return localSnapshot(DEMO_PAYLOAD, { source: 'synthetic', demo: true });
+  const read = await readPrivateJson('finance-snapshot.json');
+  const raw = read.ok && read.value?.payload && typeof read.value.payload === 'object' && !Array.isArray(read.value.payload)
+    ? read.value.payload
+    : (read.ok && read.value && typeof read.value === 'object' && !Array.isArray(read.value) ? read.value : null);
+  if (!raw) {
+    console.warn('[finance] private snapshot unavailable', read.reason || 'invalid');
+    return localSnapshot(EMPTY_PAYLOAD, { source: 'private-missing', demo: false });
+  }
+  return localSnapshot(sanitizeFinancePayload(raw), { source: 'private', demo: false });
 }
 
 async function seed(db) {
@@ -147,15 +132,15 @@ async function seed(db) {
 
 export async function getFinanceSnapshot() {
   const { env } = await getBindings();
-  if (!env?.DB) return localSnapshot();
+  if (!env?.DB) return loadLocalSnapshot();
   try {
     const row = await env.DB.prepare('SELECT * FROM finance_snapshot WHERE id = ?')
       .bind(SINGLETON_ID)
       .first();
     return row ? parseRow(row) : seed(env.DB);
   } catch (error) {
-    console.warn('[finance] falling back to synthetic snapshot', error?.message);
-    return localSnapshot();
+    console.warn('[finance] falling back to local snapshot', error?.message);
+    return loadLocalSnapshot();
   }
 }
 
@@ -202,7 +187,14 @@ export async function updateFinanceSnapshot(input, {
     updatedAt: new Date().toISOString(),
   };
   const { env } = await getBindings();
-  if (!env?.DB) return { ...next, demo: true, evaluation };
+  if (!env?.DB) {
+    return {
+      ...next,
+      source: current.source,
+      demo: current.source === 'synthetic',
+      evaluation,
+    };
+  }
 
   await env.DB.prepare(
     `UPDATE finance_snapshot
@@ -226,7 +218,7 @@ export async function setFinanceLock(locked, expectedRevision = null) {
     updatedAt: new Date().toISOString(),
   };
   const { env } = await getBindings();
-  if (!env?.DB) return { ...next, demo: true };
+  if (!env?.DB) return { ...next, source: current.source, demo: current.source === 'synthetic' };
 
   await env.DB.prepare(
     `UPDATE finance_snapshot

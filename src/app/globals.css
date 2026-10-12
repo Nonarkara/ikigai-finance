@@ -25,6 +25,8 @@ h2 { margin-top: 6px; font-size: 28px; letter-spacing: -.03em; }
 .topbar, .section-head { align-items: flex-end; justify-content: space-between; gap: 24px; }
 .mode { padding: 8px 10px; border: 1px solid var(--line); background: var(--panel); }
 .mode--live { color: var(--green); border-color: var(--green); }
+.mode--private { color: var(--blue); border-color: var(--blue); }
+.mode--synthetic { color: var(--yellow); border-color: var(--yellow); }
 .trust-note { margin: 32px 0 16px; padding: 16px; border-left: 4px solid var(--accent); background: var(--panel); line-height: 1.6; }
 .metrics { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
 .metrics article { min-height: 120px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }

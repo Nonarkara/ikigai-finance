@@ -1,39 +1,72 @@
 import { getBindings } from './cloudflare';
+import syntheticEvidenceFile from '../../samples/synthetic/evidence.json' with { type: 'json' };
+import { chooseLocalSource, privateDataDir, readPrivateJson } from './localData.js';
 
-const DEMO_DOCUMENTS = [
-  {
-    id: 'demo_boarding_pass', status: 'needs_review', type: 'boarding_pass',
-    vendor: 'Northstar Air', amount: 128.4, currency: 'EUR', receipt_date: '2026-07-08',
-    category: 'travel', confidence: 0.91, booking_reference: 'DEMO42',
-    created_at: '2026-07-08T09:10:00.000Z', demo: true,
-  },
-  {
-    id: 'demo_hotel', status: 'approved', type: 'invoice', vendor: 'Harbor Hotel',
-    amount: 312, currency: 'USD', receipt_date: '2026-07-07', category: 'lodging',
-    confidence: 0.96, booking_reference: null, created_at: '2026-07-07T15:30:00.000Z', demo: true,
-  },
-];
+const REVIEW_STATUSES = new Set(['approved', 'rejected', 'needs_review', 'pending']);
+
+function presentDocument(document, demo) {
+  const row = document && typeof document === 'object' ? document : {};
+  const status = REVIEW_STATUSES.has(row.status) ? row.status : 'needs_review';
+  return { ...row, status, demo };
+}
+
+async function localEvidence() {
+  const dir = privateDataDir();
+  let read = { ok: false, reason: 'unset' };
+  if (dir) {
+    const file = await readPrivateJson('evidence.json');
+    if (!file.ok) {
+      console.warn('[evidence] private file unavailable', file.reason);
+      read = file;
+    } else {
+      const list = Array.isArray(file.value?.documents)
+        ? file.value.documents
+        : (Array.isArray(file.value) ? file.value : null);
+      if (!list) {
+        console.warn('[evidence] private file invalid');
+        read = { ok: false, reason: 'invalid' };
+      } else {
+        read = { ok: true, value: list.map((document) => presentDocument(document, false)) };
+      }
+    }
+  }
+  const chosen = chooseLocalSource(Boolean(dir), read, {
+    synthetic: syntheticEvidenceFile.documents.map((document) => presentDocument(document, true)),
+    blank: [],
+  });
+  return {
+    documents: chosen.value,
+    mode: chosen.mode,
+    ...(chosen.privateStatus ? { privateStatus: chosen.privateStatus } : {}),
+  };
+}
 
 export async function listEvidence() {
   const { env } = await getBindings();
-  if (!env?.DB) return { documents: DEMO_DOCUMENTS, mode: 'synthetic' };
+  if (!env?.DB) return localEvidence();
   try {
     const { results } = await env.DB.prepare(
       'SELECT * FROM documents ORDER BY created_at DESC LIMIT 100',
     ).all();
     return { documents: results || [], mode: 'live' };
-  } catch {
-    return { documents: DEMO_DOCUMENTS, mode: 'synthetic' };
+  } catch (error) {
+    console.warn('[evidence] falling back to local evidence', error?.message);
+    return localEvidence();
   }
 }
 
 export async function getEvidence(id) {
   const { env } = await getBindings();
-  if (!env?.DB) return DEMO_DOCUMENTS.find((item) => item.id === id) || null;
+  if (!env?.DB) {
+    const local = await localEvidence();
+    return local.documents.find((item) => item.id === id) || null;
+  }
   try {
     return await env.DB.prepare('SELECT * FROM documents WHERE id = ?').bind(id).first();
-  } catch {
-    return DEMO_DOCUMENTS.find((item) => item.id === id) || null;
+  } catch (error) {
+    console.warn('[evidence] falling back to local evidence', error?.message);
+    const local = await localEvidence();
+    return local.documents.find((item) => item.id === id) || null;
   }
 }
 

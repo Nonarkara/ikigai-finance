@@ -49,3 +49,15 @@ next-env.d.ts
 
 # local git worktrees and their generated build output
 .worktrees/
+
+# Real financial data stays private. Synthetic stand-ins live in samples/synthetic/.
+# See README "Private data location".
+/private-data/
+/screenshots/
+/receipts/
+/statements/
+/exports/
+*.csv
+*.tsv
+*.xlsx
+*.xls
