@@ -112,7 +112,7 @@ Real statements, receipt images, screenshots, and CSV or JSON exports stay out o
    npm run start:local
    ```
 
-2. **Fast UI, no database.** In `.dev.vars` (gitignored), set `IKIGAI_PRIVATE_DATA_DIR` to a directory outside the clone, or to `private-data/` inside the clone (`private-data/` is gitignored). Optional files, same shape as `samples/synthetic/`:
+2. **Fast UI, no database.** In `.dev.vars` (gitignored), set `IKIGAI_PRIVATE_DATA_DIR` to a directory outside the clone, or to `private-data/` inside the clone (`private-data/` is gitignored). `npm run dev` reads it. `npm run start:local` and a Cloudflare deploy keep the company in the database instead. Optional files, same shape as `samples/synthetic/`:
 
    - `finance-snapshot.json`
    - `reference-profiles.json`

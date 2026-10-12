@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createProfile, listProfiles, ValidationError } from '@/lib/referenceProfile';
+import { ValidationError } from '@/lib/referenceProfile';
+import { createProfile, listProfiles } from '@/lib/referenceProfileStore';
 
 export async function GET() {
   return NextResponse.json(await listProfiles(), { headers: { 'Cache-Control': 'no-store' } });
