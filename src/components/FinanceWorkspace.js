@@ -210,7 +210,17 @@ export default function FinanceWorkspace() {
 
       {snapshot.demo && (
         <div className="finance-notice">
-          Synthetic local statement. Configure D1 before relying on saved edits.
+          Synthetic sample statement from samples/synthetic. It is fictional. Your own figures belong in the local database or in IKIGAI_PRIVATE_DATA_DIR.
+        </div>
+      )}
+      {snapshot.source === 'private' && (
+        <div className="finance-notice">
+          Loaded from your private data directory. This is not the committed synthetic sample.
+        </div>
+      )}
+      {snapshot.source === 'private-missing' && (
+        <div className="finance-notice finance-notice--amber">
+          Private data directory is set, but finance-snapshot.json is missing or unreadable. Fields are blank. The synthetic sample was not substituted.
         </div>
       )}
       {dataQuality.balanceCheck.status !== 'verified' && (

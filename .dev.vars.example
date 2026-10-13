@@ -18,3 +18,9 @@ APP_PASSWORD=
 # enter the same value when scripts/google-apps-script-bridge.gs prompts for it.
 GOOGLE_SHEETS_APP_URL=
 GOOGLE_SHEETS_SYNC_SECRET=
+
+# Optional directory of your own statements, outside this clone (or private-data/,
+# which is gitignored). Used by `npm run dev` when D1 is not configured.
+# Files: finance-snapshot.json, reference-profiles.json, evidence.json.
+# Same shape as samples/synthetic/. A missing file stays blank.
+# IKIGAI_PRIVATE_DATA_DIR=/absolute/path/to/ikigai-private

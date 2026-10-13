@@ -11,8 +11,10 @@ Ground rules while you work:
 
 - Never invent a financial number, an email, or a secret. Ask the user for
   their real company figures; leave anything unknown blank.
-- Never commit `.dev.vars`, `.wrangler/`, or a real company's data. Both are
-  gitignored — keep them that way.
+- Never commit `.dev.vars`, `.wrangler/`, or a real company's data. Statements,
+  screenshots, and spreadsheets stay in `.wrangler/state` or the directory
+  named by `IKIGAI_PRIVATE_DATA_DIR` (see README "Private data location").
+  Keep those locations out of git.
 - After any code change, keep `npm test`, `npm run lint`, `npm run build`, and
   `npm run audit:boundary` green.
 

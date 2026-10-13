@@ -56,7 +56,7 @@ This is **personal tooling for one company**, built the way the rest of the civi
 
 - **Not advice.** Numbers you type or approve are yours. The diagnostic screens financial *condition*; it does not value a company or recommend a deal.
 - **OCR never approves itself.** The trust chain is `original evidence → OCR proposal → human review → approved evidence`. An approved receipt is still not a reconciled bank transaction.
-- **Do not commit real evidence.** `.dev.vars`, `.wrangler/`, and real company data are gitignored. Issues and PRs must use synthetic fixtures only. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+- **Do not commit real evidence.** `.dev.vars`, `.wrangler/`, `private-data/`, screenshots, and spreadsheets are gitignored. The numbers in [`samples/synthetic/`](samples/synthetic/) are fictional. See [Private data location](#private-data-location). Issues and PRs must use synthetic fixtures only. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
 - **Single-owner by design.** One company edits in place. There is no tenant switcher and no way to widen `OWNER_EMAILS` at runtime. Do not pretend otherwise.
 - **Fail closed.** An empty owner allowlist admits no one. Runtime credentials belong in ignored `.dev.vars` or Cloudflare secrets — never in git.
 - **Originals stay private.** Files are not public bucket URLs. They stream through a session-protected route with `private, no-store`.
@@ -95,6 +95,32 @@ npm run start:local     # build + run against that file, offline
 ```
 
 Sign in with `APP_PASSWORD`, edit **Workspace** and the statements. Saves survive restart. Reset with `rm -rf .wrangler/state && npm run db:local`.
+
+### Private data location
+
+Committed files in [`samples/synthetic/`](samples/synthetic/) are fictional. Each one is labelled `SYNTHETIC SAMPLE`. `npm run dev` shows them when you have not pointed the app at your own files, and the dashboard says **synthetic**.
+
+Real statements, receipt images, screenshots, and CSV or JSON exports stay out of this repository. Use either of these private locations:
+
+1. **Persistent cockpit.** `npm run db:local` writes SQLite under `.wrangler/state` (gitignored). To keep that database on a disk outside the clone:
+
+   ```bash
+   mkdir -p "$HOME/ikigai-private/wrangler-state"
+   mkdir -p .wrangler
+   ln -sfn "$HOME/ikigai-private/wrangler-state" .wrangler/state
+   npm run db:local
+   npm run start:local
+   ```
+
+2. **Fast UI, no database.** In `.dev.vars` (gitignored), set `IKIGAI_PRIVATE_DATA_DIR` to a directory outside the clone, or to `private-data/` inside the clone (`private-data/` is gitignored). `npm run dev` reads it. `npm run start:local` and a Cloudflare deploy keep the company in the database instead. Optional files, same shape as `samples/synthetic/`:
+
+   - `finance-snapshot.json`
+   - `reference-profiles.json`
+   - `evidence.json`
+
+   When the variable is set and a file is missing or unreadable, that screen stays blank. The synthetic sample is left unused. When the variable is unset, the synthetic samples are used.
+
+`npm run audit:boundary` fails if a spreadsheet or a `private-data/`, `screenshots/`, `receipts/`, `statements/`, or `exports/` path is tracked.
 
 The full tiered playbook — Google sign-in, Telegram intake, Sheets mirror, Cloudflare deploy — is in **[docs/AGENT-SETUP.md](docs/AGENT-SETUP.md)**. Do the tiers in order; stop when you have what you need.
 

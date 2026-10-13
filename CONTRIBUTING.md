@@ -4,7 +4,7 @@ Keep changes narrow, evidence-backed, and testable.
 
 1. Open an issue describing the user problem and trust impact.
 2. Never attach real receipts, credentials, personal data, or private company records.
-3. Use synthetic fixtures only.
+3. Use synthetic fixtures only. Committed samples belong in `samples/synthetic/` and carry a `SYNTHETIC SAMPLE` label. Real statements, screenshots, and spreadsheets stay in `IKIGAI_PRIVATE_DATA_DIR` or `.wrangler/state`.
 4. Run `npm test`, `npm run lint`, `npm run build`, and `npm run audit:boundary`.
 5. Explain any schema, authorization, retention, or provider-model change in the pull request.
 

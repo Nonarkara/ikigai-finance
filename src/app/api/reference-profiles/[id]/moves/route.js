@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { appendMove, ValidationError } from '@/lib/referenceProfile';
+import { ValidationError } from '@/lib/referenceProfile';
+import { appendMove } from '@/lib/referenceProfileStore';
 
 export async function POST(request, { params }) {
   const { id } = await params;

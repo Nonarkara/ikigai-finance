@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { deleteProfile, getProfile, updateProfile, ValidationError } from '@/lib/referenceProfile';
+import { ValidationError } from '@/lib/referenceProfile';
+import { deleteProfile, getProfile, updateProfile } from '@/lib/referenceProfileStore';
 
 export async function GET(_request, { params }) {
   const { id } = await params;

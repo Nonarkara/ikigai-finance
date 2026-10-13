@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test src/lib/auth.test.js src/lib/owners.test.js src/lib/receipt.test.js src/lib/referenceProfile.test.js src/lib/finance/diagnostic.test.js src/lib/finance/snapshot.test.js src/lib/finance/sheetsBridge.test.js",
+    "test": "node --test src/lib/auth.test.js src/lib/owners.test.js src/lib/receipt.test.js src/lib/referenceProfile.test.js src/lib/localData.test.js src/lib/syntheticSamples.test.js src/lib/finance/diagnostic.test.js src/lib/finance/snapshot.test.js src/lib/finance/sheetsBridge.test.js",
     "db:local": "wrangler d1 migrations apply ikigai-finance --local",
     "start:local": "npm run db:local && opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",

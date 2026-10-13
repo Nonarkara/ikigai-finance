@@ -1,0 +1,40 @@
+{
+  "label": "SYNTHETIC SAMPLE — fictional statement. Not real books.",
+  "synthetic": true,
+  "payload": {
+    "companyName": "Sample Company",
+    "currency": "USD",
+    "periodEnding": "2026-06-30",
+    "sheetUrl": "",
+    "analysisOptions": { "altmanModel": "" },
+    "balanceSheet": {
+      "cash": 120000,
+      "accountsReceivable": 80000,
+      "inventory": 50000,
+      "otherCurrentAssets": "",
+      "totalCurrentAssets": 250000,
+      "fixedAssets": 350000,
+      "otherNonCurrentAssets": "",
+      "totalAssets": 600000,
+      "accountsPayable": 70000,
+      "shortTermDebt": 30000,
+      "otherCurrentLiabilities": "",
+      "totalCurrentLiabilities": 100000,
+      "longTermDebt": 100000,
+      "otherNonCurrentLiabilities": "",
+      "totalLiabilities": 200000,
+      "paidInCapital": 250000,
+      "retainedEarnings": 150000,
+      "equity": 400000
+    },
+    "incomeStatement": {
+      "revenue": 900000,
+      "grossProfit": 450000,
+      "operatingExpenses": 300000,
+      "operatingIncome": 150000,
+      "interestExpense": 10000,
+      "depreciation": "",
+      "netProfit": 140000
+    }
+  }
+}

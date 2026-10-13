@@ -24,6 +24,7 @@ const EMPTY_MOVE = { date: new Date().toISOString().slice(0, 10), oneLiner: '', 
 export default function ReferenceProfiles() {
   const [profiles, setProfiles] = useState([]);
   const [mode, setMode] = useState('loading');
+  const [privateStatus, setPrivateStatus] = useState(null);
   const [filter, setFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -36,6 +37,7 @@ export default function ReferenceProfiles() {
     const data = await response.json();
     setProfiles(data.profiles || []);
     setMode(data.mode || 'live');
+    setPrivateStatus(data.privateStatus || null);
   };
 
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function ReferenceProfiles() {
       if (cancelled) return;
       setProfiles(data.profiles || []);
       setMode(data.mode || 'live');
+      setPrivateStatus(data.privateStatus || null);
     })();
     return () => { cancelled = true; };
   }, []);
@@ -187,7 +190,13 @@ export default function ReferenceProfiles() {
 
       <div className="profile-grid">
         {mode === 'synthetic' && profiles.length > 0 && (
-          <p className="section-hint">Demo data — these rows live in the bundle, not in D1. Configure your D1 binding to make them real.</p>
+          <p className="section-hint">Synthetic sample — fictional companies in samples/synthetic. Your own profiles belong in the local database or in IKIGAI_PRIVATE_DATA_DIR.</p>
+        )}
+        {mode === 'private' && privateStatus === 'loaded' && (
+          <p className="section-hint">Loaded from your private data directory. These rows are not the committed synthetic sample.</p>
+        )}
+        {mode === 'private' && privateStatus && privateStatus !== 'loaded' && (
+          <p className="section-hint">Private data directory is set, but reference-profiles.json is missing or unreadable. No synthetic profiles were substituted.</p>
         )}
         {filtered.length === 0 && !showForm && (
           <p className="empty">No profiles in this view yet. {filter === 'all' ? 'Add the first one above.' : `Add a ${TYPE_LABELS[filter].toLowerCase()}.`}</p>
